@@ -4,6 +4,9 @@ class Program
 {
     static void Main(string[] args)
     {
+        // define a codificação de saída do console para utf-8, para o exercício 12 que há o uso de emoji.
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+
         while (true)
         {
             Console.Clear();
@@ -42,15 +45,15 @@ class Program
                 case "9":
                     ExercicioNove.Executar();
                     break;
-                //case "10":
-                //    ExercicioDez.Executar();
-                //    break;
-                //case "11":
-                //    ExercicioOnze.Executar();
-                //    break;
-                //case "12":
-                //    ExercicioDoze.Executar();
-                //    break;
+                case "10":
+                    ExercicioDez.Executar();
+                    break;
+                case "11":
+                    ExercicioOnze.Executar();
+                    break;
+                case "12":
+                    ExercicioDoze.Executar();
+                    break;
 
                 default:
                     Console.WriteLine("Opção inválida!");

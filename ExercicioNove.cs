@@ -29,116 +29,136 @@ class ExercicioNove
     public static void Executar()
     {
         Console.Clear();
-        Console.WriteLine("Exercício 9: Controle de Estoque via Linha de Comando\n");
+        Console.WriteLine(" Exercício 9: Controle de Estoque via Linha de Comando\n");
 
         while (true)
         {
             ExibirMenu();
 
             string? opcao = Console.ReadLine();
-            if (opcao == "1")
+            switch (opcao)
             {
-                InserirProduto();
-            }
-            else if (opcao == "2")
-            {
-                ListarProdutos();
-            }
-            else if (opcao == "3")
-            {
-                break;
-            }
-            else
-            {
-                Console.WriteLine("Opção inválida. Tente novamente.");
+                case "1":
+                    InserirProduto();
+                    break;
+                case "2":
+                    ListarProdutos();
+                    break;
+                case "3":
+                    ExibirArquivoTexto();
+                    break;
+                case "4":
+                    return;
+                default:
+                    Console.WriteLine(" Opção inválida. Tente novamente.");
+                    break;
             }
         }
     }
 
     private static void ExibirMenu()
     {
-        Console.WriteLine("Escolha uma opção:");
+        Console.WriteLine("\n Escolha uma opção:");
         Console.WriteLine("1 - Inserir Produto");
         Console.WriteLine("2 - Listar Produtos");
-        Console.WriteLine("3 - Sair");
+        Console.WriteLine("3 - Listar Produtos pelo Arquivo estoque.txt"); //Opção simples para ver a lista de produtos no arquivo txt, formatada de acordo com o enunciado.
+        Console.WriteLine("4 - Sair");
     }
 
     private static void InserirProduto()
     {
         if (contadorProdutos >= 5)
         {
-            Console.WriteLine("Limite de produtos atingido!");
+            Console.WriteLine(" Limite de produtos atingido!");
             return;
         }
 
-        Console.Write("Nome do Produto: ");
+        Console.Write(" Nome do Produto: ");
         string nome = Console.ReadLine() ?? string.Empty;
 
-        Console.Write("Quantidade em Estoque: ");
-        int quantidade = int.Parse(Console.ReadLine() ?? "0");
+        Console.Write(" Quantidade em Estoque: ");
+        if (!int.TryParse(Console.ReadLine(), out int quantidade))
+        {
+            Console.WriteLine(" Quantidade inválida.");
+            return;
+        }
 
-        Console.Write("Preço Unitário: ");
-        decimal preco = decimal.Parse(Console.ReadLine() ?? "0");
+        Console.Write(" Preço Unitário: ");
+        if (!decimal.TryParse(Console.ReadLine(), out decimal preco))
+        {
+            Console.WriteLine(" Preço inválido.");
+            return;
+        }
 
         Produto produto = new Produto(nome, quantidade, preco);
         produtos[contadorProdutos] = produto;
         contadorProdutos++;
 
-        try
-        {
-            SalvarProdutoNoArquivo(produto);
-            Console.WriteLine("Produto inserido com sucesso!");
-        }
-        catch (IOException ex)
-        {
-            Console.WriteLine($"Erro ao tentar salvar o produto no arquivo: {ex.Message}");
-        }
+        SalvarProdutoNoArquivo(produto);
+        Console.WriteLine(" Produto inserido com sucesso!");
     }
 
     private static void ListarProdutos()
     {
+        if (!File.Exists(caminhoArquivo))
+        {
+            Console.WriteLine(" Nenhum produto cadastrado.");
+            return;
+        }
+
         try
         {
-            if (File.Exists(caminhoArquivo))
+            string[] linhas = File.ReadAllLines(caminhoArquivo);
+            if (linhas.Length == 0)
             {
-                string[] linhas = File.ReadAllLines(caminhoArquivo);
-                if (linhas.Length == 0)
-                {
-                    Console.WriteLine("Nenhum produto cadastrado.");
-                }
-                else
-                {
-                    Console.WriteLine("Produtos cadastrados:");
-                    foreach (string linha in linhas)
-                    {
-                        string[] partes = linha.Split(',');
-
-                        if (partes.Length != 3)
-                        {
-                            Console.WriteLine("Formato inválido de dados no arquivo.");
-                            continue;
-                        }
-
-                        string nome = partes[0];
-                        int quantidade = int.Parse(partes[1]);
-                        decimal preco = decimal.Parse(partes[2]);
-
-                        Console.WriteLine($"Produto: {nome} | Quantidade: {quantidade} | Preço: R$ {preco:F2}");
-                    }
-                }
+                Console.WriteLine(" Nenhum produto cadastrado.");
             }
             else
             {
-                Console.WriteLine("Nenhum produto cadastrado.");
+                Console.WriteLine("\n Produtos cadastrados:");
+                foreach (string linha in linhas)
+                {
+                    string[] partes = linha.Split(',');
+                    if (partes.Length != 3)
+                    {
+                        Console.WriteLine(" Erro ao ler um dos produtos. Formato inválido.");
+                        continue;
+                    }
+
+                    string nome = partes[0];
+                    if (!int.TryParse(partes[1], out int quantidade) || !decimal.TryParse(partes[2], out decimal preco))
+                    {
+                        Console.WriteLine(" Produto corrompido: " + linha);
+                        continue;
+                    }
+
+                    Console.WriteLine($" Produto: {nome} |  Quantidade: {quantidade} |  Preço: R$ {preco:F2}");
+                }
             }
         }
-        catch (IOException ex)
+        catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao tentar ler o arquivo de produtos: {ex.Message}");
+            Console.WriteLine($" Erro ao ler o arquivo: {ex.Message}");
         }
-        catch (FormatException ex)
+    }
+
+    private static void ExibirArquivoTexto()
+    {
+        if (!File.Exists(caminhoArquivo))
         {
-            Console.WriteLine($"Erro no formato dos dados ao listar os produtos: {ex.Message}");
+            Console.WriteLine(" O arquivo estoque.txt ainda não foi criado.");
+            return;
+        }
+
+        Console.WriteLine("\n Conteúdo do Arquivo estoque.txt:");
+        try
+        {
+            string conteudo = File.ReadAllText(caminhoArquivo);
+            Console.WriteLine(conteudo);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($" Erro ao ler o arquivo: {ex.Message}");
         }
     }
 
@@ -151,9 +171,9 @@ class ExercicioNove
                 sw.WriteLine($"{produto.Nome},{produto.Quantidade},{produto.Preco:F2}");
             }
         }
-        catch (IOException ex)
+        catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao salvar o produto no arquivo: {ex.Message}");
+            Console.WriteLine($" Erro ao salvar no arquivo: {ex.Message}");
         }
     }
 }
